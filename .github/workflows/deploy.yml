@@ -22,12 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: actions/configure-pages@v5   # <- necessário para Pages
-      - run: npm install                   # use install (mais compatível)
-      - run: npm run build                 # gera a pasta dist/
+      - uses: actions/configure-pages@v5
+      - run: npm install
+      - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist                       # <- publique dist/
+          path: dist
   deploy:
     needs: build
     runs-on: ubuntu-latest
