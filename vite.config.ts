@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/TestVoca/',   // <- nome EXATO do repositório
+  base: '/TestVoca/',   // <- obrigatório no GitHub Pages
 })
