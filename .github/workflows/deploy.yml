@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Deploy Vite to gh-pages
 on:
   push:
