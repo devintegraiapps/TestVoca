@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <title>Teste Vocacional (RIASEC) — Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; background:#0f172a; color:#e2e8f0; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+    .card { background:#111827; border:1px solid #334155; border-radius:16px; padding:16px; }
+    h1 { font-size: 22px; margin: 0 0 6px 0; }
+    h2 { font-size: 18px; margin: 0 0 8px 0; }
+    h3 { font-size: 16px; margin: 16px 0 8px 0; }
+    .muted { color:#94a3b8; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    .q { background:#0b1220; border:1px solid #334155; border-radius:12px; padding:12px; margin-bottom:10px; }
+    .pill { background:#334155; border-radius:6px; padding:2px 6px; font-size:12px; font-weight:700; }
+    .btn { border-radius:10px; border:1px solid #475569; padding:8px 12px; background:#0b1220; color:#e2e8f0; cursor:pointer; }
+    .btn:hover { background:#1f2937; }
+    .btn-primary { background:#22c55e; border-color:#16a34a; color:#052e16; font-weight:700; }
+    .btn-primary:hover { background:#16a34a; }
+    .btn-blue { background:#3b82f6; border-color:#60a5fa; color:#081226; font-weight:700; }
+    .btn-blue:hover { background:#60a5fa; }
+    .grid2 { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px; }
+    @media (max-width: 700px){ .grid2{ grid-template-columns:1fr; } }
+    .list { margin:0; padding-left:18px; }
+    .sep { height:1px; background:#334155; margin:16px 0; }
+    .tiny { font-size:12px; color:#94a3b8; }
+    .progress { font-size: 13px; }
+    .err { background:#7f1d1d; color:#fee2e2; padding:8px; border-radius:8px; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div style="text-align:center; margin-bottom:12px;">
+      <h1>Teste Vocacional (RIASEC) — Completo</h1>
+      <div class="muted">Responda 24 afirmações. Escala 0–4 (Discordo → Concordo).</div>
+    </div>
+
+    <div id="app"></div>
+
+    <div style="text-align:center; margin-top:10px;" class="tiny">Demo • RIASEC • v0.3 (HTML estático)</div>
+  </div>
+
+<script>
+(function () {
+  const labelFor = (k) => ({R:"Realista",I:"Investigativo",A:"Artístico",S:"Social",E:"Empreendedor",C:"Convencional"})[k];
+
+  const QUESTIONS = [
+    { id:1, text:"Gosto de consertar, montar ou operar equipamentos e ferramentas.", key:"R" },
+    { id:2, text:"Prefiro atividades práticas ao ar livre a ficar no escritório.", key:"R" },
+    { id:3, text:"Tenho interesse por máquinas, automóveis ou eletrônica.", key:"R" },
+    { id:4, text:"Curto aprender fazendo, mãos à obra.", key:"R" },
+    { id:5, text:"Gosto de investigar como as coisas funcionam e entender causas.", key:"I" },
+    { id:6, text:"Curto resolver problemas complexos usando lógica e dados.", key:"I" },
+    { id:7, text:"Me interessa ciência, tecnologia ou pesquisa.", key:"I" },
+    { id:8, text:"Gosto de estudar conteúdos profundos e teóricos.", key:"I" },
+    { id:9, text:"Gosto de criar (desenhar, escrever, compor, editar vídeos).", key:"A" },
+    { id:10, text:"Prefiro tarefas com liberdade e expressão pessoal.", key:"A" },
+    { id:11, text:"Valorizo estética, design e emoção na comunicação.", key:"A" },
+    { id:12, text:"Curto apresentar ideias de forma visual ou sonora.", key:"A" },
+    { id:13, text:"Gosto de ajudar pessoas a aprender ou se desenvolver.", key:"S" },
+    { id:14, text:"Tenho empatia e paciência ao lidar com os outros.", key:"S" },
+    { id:15, text:"Me interesso por educação, saúde ou impacto social.", key:"S" },
+    { id:16, text:"Trabalhar em equipe e comunicar é natural para mim.", key:"S" },
+    { id:17, text:"Curto liderar projetos e tomar decisões.", key:"E" },
+    { id:18, text:"Gosto de negociar, vender ou persuadir.", key:"E" },
+    { id:19, text:"Me atrai criar negócios, produtos ou estratégias.", key:"E" },
+    { id:20, text:"Sou competitivo(a) e orientado(a) a metas.", key:"E" },
+    { id:21, text:"Gosto de organizar informações, planilhas e processos.", key:"C" },
+    { id:22, text:"Prezo por precisão, prazos e rotinas claras.", key:"C" },
+    { id:23, text:"Me dou bem com finanças, administração e compliance.", key:"C" },
+    { id:24, text:"Curto seguir procedimentos e melhorar a eficiência.", key:"C" },
+  ];
+
+  const COURSES_BY_KEY = {
+    R: { area:"Realista (Prático/Técnico)", courses:[
+      { name:"Engenharia Mecânica", rationaleByKey:{R:"enfatiza projetos e operação de máquinas, com forte componente prático"} },
+      { name:"Engenharia Elétrica", rationaleByKey:{R:"atua com sistemas elétricos e eletrônicos, testes e manutenção"} },
+      { name:"Engenharia Civil", rationaleByKey:{R:"envolve obras, canteiro e supervisão técnica em campo"} },
+      { name:"Automação Industrial", rationaleByKey:{R:"integra sensores, CLPs e robótica em processos industriais"} },
+      { name:"Logística", rationaleByKey:{R:"operações, armazenagem e distribuição com viés prático"} },
+      { name:"Tecnologia em Manutenção", rationaleByKey:{R:"diagnóstico e correção de falhas em equipamentos"} },
+    ]},
+    I: { area:"Investigativo (Ciência/Análise)", courses:[
+      { name:"Ciência da Computação", rationaleByKey:{I:"ênfase em algoritmos, estruturas de dados e resolução lógica"} },
+      { name:"Engenharia de Software", rationaleByKey:{I:"projeto de sistemas, testes e engenharia de requisitos"} },
+      { name:"Estatística", rationaleByKey:{I:"modelagem, inferência e tomada de decisão baseada em dados"} },
+      { name:"Física", rationaleByKey:{I:"investigação teórica e experimental de fenômenos naturais"} },
+      { name:"Química", rationaleByKey:{I:"análise laboratorial e desenvolvimento de materiais/processos"} },
+      { name:"Biomedicina", rationaleByKey:{I:"pesquisa em saúde, análises clínicas e biotecnologia"} },
+      { name:"Data Science", rationaleByKey:{I:"ciência de dados aplicada a problemas reais e predição"} },
+      { name:"Análise e Desenvolvimento de Sistemas", rationaleByKey:{I:"desenvolvimento prático com base analítica"} },
+    ]},
+    A: { area:"Artístico (Criação/Design)", courses:[
+      { name:"Design (Gráfico/Produto/UX)", rationaleByKey:{A:"projetos com foco em estética, usabilidade e linguagem visual"} },
+      { name:"Arquitetura (ênfase conceitual)", rationaleByKey:{A:"concepção de espaços com visão criativa e autoral"} },
+      { name:"Publicidade e Propaganda", rationaleByKey:{A:"campanhas, roteiro e direção de arte"} },
+      { name:"Cinema e Audiovisual", rationaleByKey:{A:"narrativa visual, fotografia e edição"} },
+      { name:"Artes Visuais", rationaleByKey:{A:"experimentação e expressão artística em múltiplas mídias"} },
+      { name:"Música", rationaleByKey:{A:"composição, performance e produção musical"} },
+      { name:"Moda", rationaleByKey:{A:"criação autoral, coleção e styling"} },
+      { name:"Games/Animação", rationaleByKey:{A:"game design, arte 2D/3D e narrativa interativa"} },
+    ]},
+    S: { area:"Social (Educação/Saúde/Serviço)", courses:[
+      { name:"Pedagogia", rationaleByKey:{S:"mediação de aprendizagem e desenvolvimento humano"} },
+      { name:"Psicologia", rationaleByKey:{S:"compreensão do comportamento e intervenção clínica/organizacional"} },
+      { name:"Serviço Social", rationaleByKey:{S:"políticas públicas e atendimento a populações vulneráveis"} },
+      { name:"Fisioterapia", rationaleByKey:{S:"reabilitação e cuidado direto ao paciente"} },
+      { name:"Enfermagem", rationaleByKey:{S:"assistência em saúde e trabalho em equipe multiprofissional"} },
+      { name:"Educação Física", rationaleByKey:{S:"promoção de saúde e desempenho humano"} },
+      { name:"Fonoaudiologia", rationaleByKey:{S:"comunicação humana e reabilitação"} },
+      { name:"Relações Públicas", rationaleByKey:{S:"gestão de relacionamento e comunicação"} },
+    ]},
+    E: { area:"Empreendedor (Negócios/Liderança)", courses:[
+      { name:"Administração", rationaleByKey:{E:"gestão de pessoas, processos e estratégia"} },
+      { name:"Marketing", rationaleByKey:{E:"posicionamento, branding e growth"} },
+      { name:"Comércio Exterior", rationaleByKey:{E:"negociação internacional e operações"} },
+      { name:"Economia", rationaleByKey:{E:"análise de mercados e políticas públicas"} },
+      { name:"Gestão Comercial", rationaleByKey:{E:"vendas consultivas e metas"} },
+      { name:"Gestão de RH", rationaleByKey:{E:"liderança e desenvolvimento organizacional"} },
+      { name:"Empreendedorismo", rationaleByKey:{E:"criação e validação de negócios"} },
+      { name:"Turismo", rationaleByKey:{E:"gestão de serviços e experiência do cliente"} },
+    ]},
+    C: { area:"Convencional (Processos/Financeiro)", courses:[
+      { name:"Ciências Contábeis", rationaleByKey:{C:"controle financeiro, conformidade e precisão"} },
+      { name:"Processos Gerenciais", rationaleByKey:{C:"organização, indicadores e rotinas"} },
+      { name:"Gestão da Qualidade", rationaleByKey:{C:"normas, auditoria e melhoria contínua"} },
+      { name:"Direito (compliance)", rationaleByKey:{C:"legislação aplicada a riscos e controles"} },
+      { name:"Secretariado Executivo", rationaleByKey:{C:"gestão de agenda, documentos e comunicação executiva"} },
+      { name:"Logística", rationaleByKey:{C:"planejamento e controle de fluxos"} },
+      { name:"Sistemas de Informação (gestão)", rationaleByKey:{C:"processos + TI para eficiência"} },
+      { name:"Controladoria e Finanças", rationaleByKey:{C:"orçamento, custo e compliance"} },
+    ]},
+  };
+
+  const COURSE_AXIS = {};
+  Object.keys(COURSES_BY_KEY).forEach(k => {
+    COURSES_BY_KEY[k].courses.forEach(c => COURSE_AXIS[c.name] = k);
+  });
+
+  function computeRecommendations(top3, normScores) {
+    const axisWeight = { 0:1.0, 1:0.75, 2:0.55 };
+    const bag = new Map();
+    top3.forEach((axisKey, idx) => {
+      const weight = axisWeight[idx] ?? 0.35;
+      const axis = COURSES_BY_KEY[axisKey];
+      axis.courses.forEach(c => {
+        const base = (normScores[axisKey] || 0) * weight;
+        const reason = (c.rationaleByKey && c.rationaleByKey[axisKey])
+          ? `${labelFor(axisKey)}: ${c.rationaleByKey[axisKey]}`
+          : `${labelFor(axisKey)}: alta afinidade com conteúdos/práticas da área.`;
+        if (bag.has(c.name)) {
+          const prev = bag.get(c.name);
+          prev.score += base;
+          if (!prev.reasons.includes(reason)) prev.reasons.push(reason);
+        } else {
+          bag.set(c.name, { name:c.name, score:base, reasons:[reason] });
+        }
+      });
+    });
+    return Array.from(bag.values()).sort((a,b)=>b.score-a.score).slice(0,5);
+  }
+
+  function buildResultText(rawScores, recommended){
+    const keys = Object.keys(rawScores).sort((a,b)=>rawScores[b]-rawScores[a]);
+    const lines = [];
+    lines.push("Meu resultado no Teste Vocacional (RIASEC):");
+    keys.forEach(k => lines.push(`• ${labelFor(k)} — ${rawScores[k]} pts`));
+    lines.push("Top 5 cursos sugeridos:");
+    recommended.forEach(rc => lines.push(`- ${rc.name}: ${rc.reasons.join("; ")}`));
+    return lines.join("
+");
+  }
+
+  const $app = document.getElementById("app");
+
+  let consent = false;
+  const answers = {};
+  let step = "quiz";
+
+  function render(){
+    $app.innerHTML = "";
+    if (!consent) { $app.appendChild(elConsent()); return; }
+    if (step === "quiz"){ $app.appendChild(elQuiz()); } else { $app.appendChild(elResult()); }
+  }
+
+  function elConsent(){
+    const box = div("card");
+    box.innerHTML = \`
+      <h2>Termo de Consentimento (LGPD)</h2>
+      <p class="muted">
+        Este protótipo usa suas respostas apenas para cálculo local do resultado. Não há coleta de dados.
+        Ao continuar, você concorda com este uso para fins de demonstração.
+      </p>
+    \`;
+    const btn = button("Concordo e começar","btn btn-primary");
+    btn.onclick = () => { consent = true; render(); };
+    box.appendChild(btn);
+    return box;
+  }
+
+  function elQuiz(){
+    const box = div("card");
+    const h2 = document.createElement("h2"); h2.textContent = "Questionário";
+    box.appendChild(h2);
+
+    QUESTIONS.forEach(q=>{
+      const qbox = div("q");
+      const row1 = div("row");
+      const tag = span("pill", String(q.id));
+      const p = document.createElement("p"); p.style.margin="0"; p.textContent = q.text;
+      row1.appendChild(tag); row1.appendChild(p);
+      qbox.appendChild(row1);
+
+      const row2 = div("row");
+      [0,1,2,3,4].forEach(v=>{
+        const b = button(String(v),"btn");
+        if (answers[q.id] === v) {
+          b.style.background = "#3b82f6";
+          b.style.borderColor = "#60a5fa";
+          b.style.color = "#081226";
+          b.style.fontWeight = "700";
+        }
+        b.onclick = () => { answers[q.id] = v; render(); };
+        row2.appendChild(b);
+      });
+      qbox.appendChild(row2);
+
+      box.appendChild(qbox);
+    });
+
+    const footer = div("row");
+    const progress = span("muted progress", \`Progresso: \${Object.keys(answers).length}/\${QUESTIONS.length}\`);
+    const btn = button("Ver resultado","btn btn-primary");
+    btn.onclick = () => {
+      if (Object.keys(answers).length !== QUESTIONS.length) {
+        alert("Responda todas as afirmações para ver o resultado.");
+        return;
+      }
+      step = "result";
+      render();
+    };
+    footer.appendChild(progress);
+    footer.appendChild(btn);
+
+    box.appendChild(footer);
+    return box;
+  }
+
+  function elResult(){
+    const raw = { R:0,I:0,A:0,S:0,E:0,C:0 };
+    QUESTIONS.forEach(q => { raw[q.key] += (answers[q.id] ?? 0); });
+
+    const maxPerAxis = 16;
+    const norm = { R:0,I:0,A:0,S:0,E:0,C:0 };
+    Object.keys(raw).forEach(k => norm[k] = raw[k] / maxPerAxis);
+
+    const sorted = Object.keys(raw).sort((a,b)=>raw[b]-raw[a]);
+    const top3 = sorted.slice(0,3);
+    const recommended = computeRecommendations(top3, norm);
+
+    const box = div("card");
+    const h2 = document.createElement("h2"); h2.textContent = "Seu resultado";
+    box.appendChild(h2);
+    const p = pEl("Perfis em ordem de afinidade (pontuação total por dimensão):","muted");
+    box.appendChild(p);
+
+    sorted.forEach(k=>{
+      const row = div("row"); row.style.fontSize="14px";
+      row.appendChild(span("pill", k));
+      const lab = document.createElement("span"); lab.textContent = labelFor(k);
+      const pts = pEl(\`— \${raw[k]} pts\`,"muted"); pts.style.marginLeft = "6px";
+      row.appendChild(lab); row.appendChild(pts);
+      box.appendChild(row);
+    });
+
+    box.appendChild(div("sep"));
+
+    const h3a = document.createElement("h3"); h3a.textContent = "Top 5 cursos recomendados (com justificativa)";
+    box.appendChild(h3a);
+
+    const grid = div("grid2");
+    recommended.forEach(rc=>{
+      const item = div("card");
+      item.style.background = "#0b1220";
+      const tt = document.createElement("div"); tt.style.fontWeight="700"; tt.style.fontSize="14px"; tt.textContent = rc.name;
+      const ul = document.createElement("ul"); ul.className = "list muted";
+      rc.reasons.forEach(r => { const li = document.createElement("li"); li.textContent = r; ul.appendChild(li); });
+      item.appendChild(tt); item.appendChild(ul);
+      grid.appendChild(item);
+    });
+    box.appendChild(grid);
+
+    box.appendChild(div("sep"));
+
+    const h3b = document.createElement("h3"); h3b.textContent = "Seus 3 eixos mais fortes";
+    box.appendChild(h3b);
+
+    const grid2 = div("grid2");
+    top3.forEach(k=>{
+      const c = div("card"); c.style.background="#0b1220";
+      const t = document.createElement("div"); t.style.fontWeight="700"; t.style.marginBottom="6px"; t.textContent = labelFor(k);
+      const txt = pEl(\`Contribuição proporcional: \${(norm[k]*100).toFixed(0)}%\`,"muted");
+      c.appendChild(t); c.appendChild(txt);
+      grid2.appendChild(c);
+    });
+    box.appendChild(grid2);
+
+    const actions = div("row"); actions.style.marginTop = "10px";
+    const redo = button("Refazer teste","btn");
+    redo.onclick = () => { Object.keys(answers).forEach(k=>delete answers[k]); step="quiz"; render(); };
+    const copy = button("Copiar resultado","btn btn-blue");
+    copy.onclick = async () => {
+      const text = buildResultText(raw, recommended);
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("Resultado copiado para a área de transferência.");
+      } catch {
+        alert("Selecione e copie manualmente:\n\n" + text);
+      }
+    };
+    actions.appendChild(redo); actions.appendChild(copy);
+    box.appendChild(actions);
+
+    const disclaimer = document.createElement("p"); disclaimer.className = "tiny";
+    disclaimer.textContent = "*Este teste é indicativo e não substitui orientação profissional.";
+    box.appendChild(disclaimer);
+
+    return box;
+  }
+
+  function div(cls){ const e=document.createElement("div"); if(cls) e.className=cls; return e; }
+  function span(cls,txt){ const e=document.createElement("span"); if(cls) e.className=cls; e.textContent=txt; return e; }
+  function pEl(txt,cls){ const e=document.createElement("p"); if(cls) e.className=cls; e.textContent=txt; return e; }
+  function button(txt,cls){ const e=document.createElement("button"); if(cls) e.className=cls; e.textContent=txt; return e; }
+
+  render();
+})();
+</script>
+</body>
+</html>
