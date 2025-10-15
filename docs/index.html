@@ -2,8 +2,9 @@
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
-  <title>Teste Vocacional (RIASEC) — Demo</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Teste Vocacional (RIASEC) — Pages</title>
+  <meta name="description" content="Teste vocacional (RIASEC) com 24 perguntas e recomendação de top 5 cursos com justificativa." />
   <style>
     :root { color-scheme: dark; }
     body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; background:#0f172a; color:#e2e8f0; }
@@ -28,7 +29,6 @@
     .sep { height:1px; background:#334155; margin:16px 0; }
     .tiny { font-size:12px; color:#94a3b8; }
     .progress { font-size: 13px; }
-    .err { background:#7f1d1d; color:#fee2e2; padding:8px; border-radius:8px; margin-top:10px; }
   </style>
 </head>
 <body>
@@ -37,10 +37,8 @@
       <h1>Teste Vocacional (RIASEC) — Completo</h1>
       <div class="muted">Responda 24 afirmações. Escala 0–4 (Discordo → Concordo).</div>
     </div>
-
     <div id="app"></div>
-
-    <div style="text-align:center; margin-top:10px;" class="tiny">Demo • RIASEC • v0.3 (HTML estático)</div>
+    <div style="text-align:center; margin-top:10px;" class="tiny">GitHub Pages • /docs • v0.4</div>
   </div>
 
 <script>
@@ -135,11 +133,6 @@
     ]},
   };
 
-  const COURSE_AXIS = {};
-  Object.keys(COURSES_BY_KEY).forEach(k => {
-    COURSES_BY_KEY[k].courses.forEach(c => COURSE_AXIS[c.name] = k);
-  });
-
   function computeRecommendations(top3, normScores) {
     const axisWeight = { 0:1.0, 1:0.75, 2:0.55 };
     const bag = new Map();
@@ -149,8 +142,8 @@
       axis.courses.forEach(c => {
         const base = (normScores[axisKey] || 0) * weight;
         const reason = (c.rationaleByKey && c.rationaleByKey[axisKey])
-          ? `${labelFor(axisKey)}: ${c.rationaleByKey[axisKey]}`
-          : `${labelFor(axisKey)}: alta afinidade com conteúdos/práticas da área.`;
+          ? `${({R:"Realista",I:"Investigativo",A:"Artístico",S:"Social",E:"Empreendedor",C:"Convencional"})[axisKey]}: ${c.rationaleByKey[axisKey]}`
+          : `${({R:"Realista",I:"Investigativo",A:"Artístico",S:"Social",E:"Empreendedor",C:"Convencional"})[axisKey]}: alta afinidade com conteúdos/práticas da área.`;
         if (bag.has(c.name)) {
           const prev = bag.get(c.name);
           prev.score += base;
@@ -167,15 +160,13 @@
     const keys = Object.keys(rawScores).sort((a,b)=>rawScores[b]-rawScores[a]);
     const lines = [];
     lines.push("Meu resultado no Teste Vocacional (RIASEC):");
-    keys.forEach(k => lines.push(`• ${labelFor(k)} — ${rawScores[k]} pts`));
+    keys.forEach(k => lines.push(`• ${({R:"Realista",I:"Investigativo",A:"Artístico",S:"Social",E:"Empreendedor",C:"Convencional"})[k]} — ${rawScores[k]} pts`));
     lines.push("Top 5 cursos sugeridos:");
     recommended.forEach(rc => lines.push(`- ${rc.name}: ${rc.reasons.join("; ")}`));
-    return lines.join("
-");
+    return lines.join("\n");
   }
 
   const $app = document.getElementById("app");
-
   let consent = false;
   const answers = {};
   let step = "quiz";
@@ -188,13 +179,12 @@
 
   function elConsent(){
     const box = div("card");
-    box.innerHTML = \`
+    box.innerHTML = `
       <h2>Termo de Consentimento (LGPD)</h2>
       <p class="muted">
         Este protótipo usa suas respostas apenas para cálculo local do resultado. Não há coleta de dados.
         Ao continuar, você concorda com este uso para fins de demonstração.
-      </p>
-    \`;
+      </p>`;
     const btn = button("Concordo e começar","btn btn-primary");
     btn.onclick = () => { consent = true; render(); };
     box.appendChild(btn);
@@ -232,7 +222,7 @@
     });
 
     const footer = div("row");
-    const progress = span("muted progress", \`Progresso: \${Object.keys(answers).length}/\${QUESTIONS.length}\`);
+    const progress = span("muted progress", `Progresso: ${Object.keys(answers).length}/${QUESTIONS.length}`);
     const btn = button("Ver resultado","btn btn-primary");
     btn.onclick = () => {
       if (Object.keys(answers).length !== QUESTIONS.length) {
@@ -270,8 +260,8 @@
     sorted.forEach(k=>{
       const row = div("row"); row.style.fontSize="14px";
       row.appendChild(span("pill", k));
-      const lab = document.createElement("span"); lab.textContent = labelFor(k);
-      const pts = pEl(\`— \${raw[k]} pts\`,"muted"); pts.style.marginLeft = "6px";
+      const lab = document.createElement("span"); lab.textContent = ({R:"Realista",I:"Investigativo",A:"Artístico",S:"Social",E:"Empreendedor",C:"Convencional"})[k];
+      const pts = pEl(`— ${raw[k]} pts`,"muted"); pts.style.marginLeft = "6px";
       row.appendChild(lab); row.appendChild(pts);
       box.appendChild(row);
     });
@@ -301,8 +291,8 @@
     const grid2 = div("grid2");
     top3.forEach(k=>{
       const c = div("card"); c.style.background="#0b1220";
-      const t = document.createElement("div"); t.style.fontWeight="700"; t.style.marginBottom="6px"; t.textContent = labelFor(k);
-      const txt = pEl(\`Contribuição proporcional: \${(norm[k]*100).toFixed(0)}%\`,"muted");
+      const t = document.createElement("div"); t.style.fontWeight="700"; t.style.marginBottom="6px"; t.textContent = ({R:"Realista",I:"Investigativo",A:"Artístico",S:"Social",E:"Empreendedor",C:"Convencional"})[k];
+      const txt = pEl(`Contribuição proporcional: ${(norm[k]*100).toFixed(0)}%`,"muted");
       c.appendChild(t); c.appendChild(txt);
       grid2.appendChild(c);
     });
@@ -310,16 +300,12 @@
 
     const actions = div("row"); actions.style.marginTop = "10px";
     const redo = button("Refazer teste","btn");
-    redo.onclick = () => { Object.keys(answers).forEach(k=>delete answers[k]); step="quiz"; render(); };
+    redo.onclick = () => { for (const k in answers) delete answers[k]; step="quiz"; render(); };
     const copy = button("Copiar resultado","btn btn-blue");
     copy.onclick = async () => {
       const text = buildResultText(raw, recommended);
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("Resultado copiado para a área de transferência.");
-      } catch {
-        alert("Selecione e copie manualmente:\n\n" + text);
-      }
+      try { await navigator.clipboard.writeText(text); alert("Resultado copiado para a área de transferência."); }
+      catch { alert("Selecione e copie manualmente:\n\n" + text); }
     };
     actions.appendChild(redo); actions.appendChild(copy);
     box.appendChild(actions);
@@ -329,6 +315,16 @@
     box.appendChild(disclaimer);
 
     return box;
+  }
+
+  function buildResultText(rawScores, recommended){
+    const keys = Object.keys(rawScores).sort((a,b)=>rawScores[b]-rawScores[a]);
+    const lines = [];
+    lines.push("Meu resultado no Teste Vocacional (RIASEC):");
+    keys.forEach(k => lines.push(`• ${({R:"Realista",I:"Investigativo",A:"Artístico",S:"Social",E:"Empreendedor",C:"Convencional"})[k]} — ${rawScores[k]} pts`));
+    lines.push("Top 5 cursos sugeridos:");
+    recommended.forEach(rc => lines.push(`- ${rc.name}: ${rc.reasons.join("; ")}`));
+    return lines.join("\n");
   }
 
   function div(cls){ const e=document.createElement("div"); if(cls) e.className=cls; return e; }
