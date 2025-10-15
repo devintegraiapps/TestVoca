@@ -1,25 +1,33 @@
 name: Deploy Vite site to Pages
+
 on:
-  push: { branches: [ "main" ] }
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: "pages"
   cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npm ci
-      - run: npm run build
+        with:
+          node-version: 20
+      - uses: actions/configure-pages@v5   # <- necessário para Pages
+      - run: npm install                   # use install (mais compatível)
+      - run: npm run build                 # gera a pasta dist/
       - uses: actions/upload-pages-artifact@v3
-        with: { path: dist }
+        with:
+          path: dist                       # <- publique dist/
   deploy:
     needs: build
     runs-on: ubuntu-latest
